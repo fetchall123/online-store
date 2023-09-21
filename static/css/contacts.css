@@ -1,0 +1,7 @@
+header {
+    height: 60px; /* Высота шапки */
+    background-color: #1c1c1c; /* Цвет фона  */
+}
+text {
+    color: black;
+}

@@ -1,0 +1,13 @@
+header {
+    height: 60px; /* Высота шапки */
+    background-color: #1c1c1c; /* Цвет фона  */
+}
+text {
+    color: blue;
+}
+button {
+    color: white;
+    background-color: #c0392b;
+    font-size: 16px;
+    padding: 10px 20px;
+}

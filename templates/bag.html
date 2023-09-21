@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+{% block head %}
+    <link rel="stylesheet" href= "../static/css/bag.css">
+    <title>Корзина</title>
+{% endblock %}
+{% block content %}
+<h1>Корзина</h1>
+<table>
+  <tr>
+    <th>Наименование</th>
+    <th>Цена</th>
+    <th>Кол-во</th>
+  </tr>
+  <tr>
+    <td>Супер крутой товар</td>
+    <td>50 руб</td>
+    <td>1 шт.</td>
+    <td><img src="../static/images/куб.jpeg"  width="135" height="90" /></td>
+  </tr>
+  <tr>
+    <td>Супер крутой товар2</td>
+    <td>1000$ == 85620 руб.</td>
+    <td>1 шт.</td>
+    <td><img src="../static/images/top_good.jpg"  width="135" height="90" /></td>
+  </tr>
+</table>
+<p>Итого: 85670 руб.</p>
+<p><button>К оплате</button></p>
+{% endblock %}
