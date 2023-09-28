@@ -3,6 +3,8 @@ import psycopg2
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+from psycopg2.errors import UniqueViolation
+from db_functions import *
 
 
 app = Flask(__name__)
@@ -21,14 +23,6 @@ class User(UserMixin):
         self.id = id
 
 
-def get_db_connection():
-    conn = psycopg2.connect(host='localhost',
-                                database='test',
-                                user='postgres',
-                                password='An230909*#')
-    return conn
-
-
 @login_manager.user_loader
 def load_user(login):
         return User(login)
@@ -41,11 +35,7 @@ def index():
 @app.route('/products/', methods=['GET', 'POST'])
 @login_required
 def products():
-    # if request.method == "POST":
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('select * from goods')
-    goods = cur.fetchall()
+    goods = get_products()
     print(goods)
     return render_template('products.html', goods_to_html = goods)
     # return render_template('products.html')
@@ -99,6 +89,8 @@ def login():
                             where login = (%s);'
                     , (request.form["login"],))
         buyers = cursor.fetchall()
+        cursor.close()
+        connection.close()
         print(buyers)
         if len(buyers) == 0:
             return render_template('login.html', error_of_loginning = "Неверный логин")
@@ -126,10 +118,14 @@ def register():
         conn = get_db_connection()  # открываем connection
         cur = conn.cursor()  # ставим курсор
         # выполняем операцию по вставке
-
-        cur.execute('INSERT INTO buyers(login, name, password, phone) \
+        try:
+            cur.execute('INSERT INTO buyers(login, name, password, phone) \
                     VALUES(%s,%s,%s,%s);'
                     , (request.form["login"], request.form["name"], request.form["password"], request.form["phone"]))
+        except UniqueViolation as e:
+            cur.close()
+            conn.close()
+            return render_template("register.html", error_of_register= "Пользователь с такими данными уже существует")
         conn.commit()  # сохраняем изменения в базе
         cur.close()  # убираем курсор и закрываем connection
         conn.close()
