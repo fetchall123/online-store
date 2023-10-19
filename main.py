@@ -1,7 +1,7 @@
 import random
 import psycopg2
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, url_for, redirect, jsonify
+from flask import Flask, render_template, request, url_for, redirect, jsonify, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from db_functions import *
 
@@ -37,8 +37,7 @@ def products():
     if request.method == "POST":
         print(request.form)
         good_id = request.form['item_id']
-        # TODO: Получить buyer_id
-        db_add_good(good_id, 1)
+        db_add_good(good_id, session['id'])
     goods = get_products()
     print(goods)
     fields_name = ('good_id', 'name', 'description', 'price', 'image_path')
@@ -61,10 +60,17 @@ def about():
 @app.route('/bag/', methods=['GET', 'POST'])
 @login_required
 def bag():
-    goods_ids = get_goods_in_bag(1)
+    if request.method == "POST":
+        return render_template('order.html')
+    goods_ids = get_goods_in_bag(session['id'])
     print(goods_ids)
     goods = get_products_by_id(goods_ids)
-    return render_template('bag.html', goods_to_html = goods)
+    print(goods)
+    total_summ = 0
+    for good in goods:
+        total_summ += good['total']
+    print(total_summ)
+    return render_template('bag.html', goods_to_html = goods, total_summ = total_summ)
 
 
 @app.route('/product1/')
@@ -95,10 +101,11 @@ def login():
         print(buyers)
         if len(buyers) == 0:
             return render_template('login.html', error_of_loginning = "Неверный логин")
-        if request.form['password'] != buyers[0][1]:
+        if request.form['password'] != buyers[0][2]:
             return render_template('login.html', error_of_loginning="Неверный пароль")
         user = User(login)  # Создаем пользователя
         login_user(user)  # Логиним пользователя
+        session['id'] = buyers[0][0]
         return render_template('index.html')
     return render_template('login.html')
 
@@ -106,6 +113,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    session.pop('id')
     return "Пока"
 
 @app.route('/register/', methods= ['GET', 'POST'])
@@ -116,10 +124,14 @@ def register():
         for item in request.form:
             if request.form[item] == "":
                 return render_template('register.html', error_of_register="Все поля должны быть заполнены!")
-            if db_register(request.form) == 'UniqueViolation':
-                return render_template("register.html", error_of_register="Пользователь с такими данными уже существует")
+        if db_register(request.form) == 'UniqueViolation':
+            return render_template("register.html", error_of_register="Пользователь с такими данными уже существует")
         return render_template("login.html")
     return render_template('register.html')
+@app.route('/order', methods= ['GET', "POST"])
+@login_required
+def order():
+    return render_template('order.html')
 
 
 if __name__ == "__main__":

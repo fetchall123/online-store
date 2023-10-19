@@ -43,7 +43,7 @@ def get_products_by_id(cursor, conn, ids):
 
 @db_conn
 def get_login(cursor, conn, login):
-    cursor.execute('select login, password from buyers \
+    cursor.execute('select buyer_id, login, password from buyers \
                                 where login = (%s);'
                    , (login,))
     buyers = cursor.fetchall()
