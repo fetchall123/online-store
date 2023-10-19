@@ -10,20 +10,25 @@
     <th>Наименование</th>
     <th>Цена</th>
     <th>Кол-во</th>
+    <th>Итого</th>
   </tr>
-  <tr>
-    <td>Супер крутой товар</td>
-    <td>50 руб</td>
-    <td>1 шт.</td>
-    <td><img src="../static/images/куб.jpeg"  width="135" height="90" /></td>
-  </tr>
-  <tr>
-    <td>Супер крутой товар2</td>
-    <td>1000$ == 85620 руб.</td>
-    <td>1 шт.</td>
-    <td><img src="../static/images/top_good.jpg"  width="135" height="90" /></td>
-  </tr>
+
+    {% for good in goods_to_html%}
+    <tr>
+      <td>{{good['name']}}</td>
+      <td>{{good['price']}} руб</td>
+      <td>{{good['amount']}}</td>
+      <td><img src="../static/images/{{good['image_path']}}"  width="135" height="90" /></td>
+      <td>{{good['total']}}</td>
+    </tr>
+    {% endfor %}
+
 </table>
-<p>Итого: 85670 руб.</p>
-<p><button>К оплате</button></p>
+<div>
+  Общая сумма {{total_summ}}
+    <form action="/bag"  method='POST'>
+      <button type="submit">К оплате</button>
+    </form>
+</div>
+
 {% endblock %}

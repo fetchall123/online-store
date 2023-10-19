@@ -12,13 +12,17 @@
       <th>Кол-во</th>
     </tr>
     {% for good in goods_to_html%}
+    <form action="/products"  method='POST'>
     <tr>
-      <td>{{good[1]}}</td>
-      <td>{{good[3]}} руб</td>
-      <td>{{good[2]}}</td>
+      <input type="hidden" value="{{good['good_id']}}" name='item_id'>
+      <td>{{good['name']}}</td>
+      <td>{{good['price']}} руб</td>
+      <td>{{good['description']}}</td>
       <td>1 шт.</td>
-      <td><img src="../static/images/{{good[4]}}"  width="135" height="90" /></td>
+      <td><img src="../static/images/{{good['image_path']}}"  width="135" height="90" /></td>
+      <td><button type = "submit">В корзину</button></td>
     </tr>
+    </form>
     {% endfor %}
   </table>
 {% endblock %}

@@ -3,7 +3,6 @@ import psycopg2
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, url_for, redirect, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
-from psycopg2.errors import UniqueViolation
 from db_functions import *
 
 
@@ -35,9 +34,16 @@ def index():
 @app.route('/products/', methods=['GET', 'POST'])
 @login_required
 def products():
+    if request.method == "POST":
+        print(request.form)
+        good_id = request.form['item_id']
+        # TODO: Получить buyer_id
+        db_add_good(good_id, 1)
     goods = get_products()
     print(goods)
-    return render_template('products.html', goods_to_html = goods)
+    fields_name = ('good_id', 'name', 'description', 'price', 'image_path')
+    dict_goods = list(map(lambda x: dict(zip(fields_name, x)), goods))
+    return render_template('products.html', goods_to_html = dict_goods)
     # return render_template('products.html')
 
 @app.route('/contacts/')
@@ -52,10 +58,13 @@ def about():
     return render_template('about.html')
 
 
-@app.route('/bag/')
+@app.route('/bag/', methods=['GET', 'POST'])
 @login_required
 def bag():
-    return render_template('bag.html')
+    goods_ids = get_goods_in_bag(1)
+    print(goods_ids)
+    goods = get_products_by_id(goods_ids)
+    return render_template('bag.html', goods_to_html = goods)
 
 
 @app.route('/product1/')
@@ -82,15 +91,7 @@ def product2():
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     if request.method == "POST":
-        connection = get_db_connection()
-        cursor = connection.cursor()
-        # Выполнение SQL-запроса для вставки данных в таблицу
-        cursor.execute('select login, password from buyers \
-                            where login = (%s);'
-                    , (request.form["login"],))
-        buyers = cursor.fetchall()
-        cursor.close()
-        connection.close()
+        buyers = get_login(request.form['login'])
         print(buyers)
         if len(buyers) == 0:
             return render_template('login.html', error_of_loginning = "Неверный логин")
@@ -115,20 +116,8 @@ def register():
         for item in request.form:
             if request.form[item] == "":
                 return render_template('register.html', error_of_register="Все поля должны быть заполнены!")
-        conn = get_db_connection()  # открываем connection
-        cur = conn.cursor()  # ставим курсор
-        # выполняем операцию по вставке
-        try:
-            cur.execute('INSERT INTO buyers(login, name, password, phone) \
-                    VALUES(%s,%s,%s,%s);'
-                    , (request.form["login"], request.form["name"], request.form["password"], request.form["phone"]))
-        except UniqueViolation as e:
-            cur.close()
-            conn.close()
-            return render_template("register.html", error_of_register= "Пользователь с такими данными уже существует")
-        conn.commit()  # сохраняем изменения в базе
-        cur.close()  # убираем курсор и закрываем connection
-        conn.close()
+            if db_register(request.form) == 'UniqueViolation':
+                return render_template("register.html", error_of_register="Пользователь с такими данными уже существует")
         return render_template("login.html")
     return render_template('register.html')
 
