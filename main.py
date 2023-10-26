@@ -61,15 +61,15 @@ def about():
 @login_required
 def bag():
     if request.method == "POST":
-        return render_template('order.html')
+        if "delete" in request.form.keys():
+            db_del_good(request.form["item_id"], session["id"])
+        else:
+            return render_template('order.html')
     goods_ids = get_goods_in_bag(session['id'])
-    print(goods_ids)
     goods = get_products_by_id(goods_ids)
-    print(goods)
     total_summ = 0
     for good in goods:
         total_summ += good['total']
-    print(total_summ)
     return render_template('bag.html', goods_to_html = goods, total_summ = total_summ)
 
 
@@ -80,7 +80,7 @@ def product1():
     date = datetime.strptime(end_date, '%Y.%m.%d')
     diff = date - datetime.now()
     days_before_end = diff.days
-    num = random.randint(1,5)
+    num = random.randint(1, 5)
     return render_template('product1.html', action_name='Весенние скидки!', end_date=end_date, days_before_end = days_before_end, num = num)
 
 
@@ -98,7 +98,6 @@ def product2():
 def login():
     if request.method == "POST":
         buyers = get_login(request.form['login'])
-        print(buyers)
         if len(buyers) == 0:
             return render_template('login.html', error_of_loginning = "Неверный логин")
         if request.form['password'] != buyers[0][2]:

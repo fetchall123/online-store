@@ -33,9 +33,10 @@ def get_products(cur, conn):
 def get_products_by_id(cursor, conn, ids):
     goods = []
     for id, amount in ids:
-        cursor.execute('SELECT name, price, image_path from goods where good_id = (%s);', (id,))
+        cursor.execute('SELECT name, price, image_path, good_id from goods where good_id = (%s);', (id,))
         good = cursor.fetchall()[0]
-        good_dict = {'name': good[0], "price": good[1],'image_path': good[2], 'amount': amount, 'total': amount*good[1]}
+        good_dict = {'name': good[0], "price": good[1], 'image_path': good[2],
+                     'amount': amount, 'total': amount*good[1], 'good_id': good[3]}
         goods.append(good_dict)
     return goods
 
@@ -83,4 +84,12 @@ def db_add_good(cursor, conn, good_id, buyer_id):
         cursor.execute('INSERT INTO bags(good_id, buyer_id, amount) \
                                     VALUES(%s,%s,%s);'
                        , (good_id, buyer_id, 1))
+    conn.commit()
+
+
+@db_conn
+def db_del_good(cursor, conn, good_id, buyer_id):
+    cursor.execute('delete from bags \
+                                    where good_id = (%s) and buyer_id  = (%s);'
+                   , (good_id, buyer_id))
     conn.commit()

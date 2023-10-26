@@ -14,20 +14,24 @@
   </tr>
 
     {% for good in goods_to_html%}
+    <form action="/bag"  method='POST'>
     <tr>
+      <input type="hidden" value="{{good['good_id']}}" name='item_id'>
       <td>{{good['name']}}</td>
       <td>{{good['price']}} руб</td>
       <td>{{good['amount']}}</td>
       <td><img src="../static/images/{{good['image_path']}}"  width="135" height="90" /></td>
       <td>{{good['total']}}</td>
+      <td><button name = "delete" type = "submit">Удалить</button></td>
     </tr>
+    </form>
     {% endfor %}
 
 </table>
 <div>
   Общая сумма {{total_summ}}
     <form action="/bag"  method='POST'>
-      <button type="submit">К оплате</button>
+      <button name = "order" type="submit">К оплате</button>
     </form>
 </div>
 
