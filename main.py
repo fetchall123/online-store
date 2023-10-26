@@ -130,6 +130,8 @@ def register():
 @app.route('/order', methods= ['GET', "POST"])
 @login_required
 def order():
+    if request.method == "POST":
+        db_move_bag_to_order(session["id"])
     return render_template('order.html')
 
 
