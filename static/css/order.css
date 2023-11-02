@@ -4,7 +4,6 @@
     list-style-type : none;
     margin-top      : 1%;
     padding         : 0;
-    /* overflow        : hidden; */
     background-color: transparent;
 }
 
@@ -27,4 +26,10 @@
 
 .form li a:hover {
     background-color: none;
+}
+button {
+    color: white;
+    background-color: #c0392b;
+    font-size: 16px;
+    padding: 10px 20px;
 }

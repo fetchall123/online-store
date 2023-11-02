@@ -98,9 +98,10 @@ def db_del_good(cursor, conn, good_id, buyer_id):
 @db_conn
 def db_move_bag_to_order(cursor, conn, buyer_id):
     cursor.execute('delete from bags \
-                                        where buyer_id  = (%s);'
+                                        where buyer_id  = (%s) returning buyer_id, good_id, amount;'
                   , (buyer_id,))
     bag = cursor.fetchall()
+    print(bag)
     cursor.execute("INSERT INTO orders(buyer_id, good_id, amount) \
-                            values(%s, %s, %s);"), (bag[1][0], bag[2][0], bag[3][0])
+                          VALUES(%s, %s, %s);"), (bag[0][0], bag[0][1], bag[0][2])
     conn.commit()

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, url_for, redirect, jsonify, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
 from db_functions import *
-
+from checkers import check_login, check_password, check_phone_number
 
 app = Flask(__name__)
 app.config.update(
@@ -35,11 +35,9 @@ def index():
 @login_required
 def products():
     if request.method == "POST":
-        print(request.form)
         good_id = request.form['item_id']
         db_add_good(good_id, session['id'])
     goods = get_products()
-    print(goods)
     fields_name = ('good_id', 'name', 'description', 'price', 'image_path')
     dict_goods = list(map(lambda x: dict(zip(fields_name, x)), goods))
     return render_template('products.html', goods_to_html = dict_goods)
@@ -123,6 +121,16 @@ def register():
         for item in request.form:
             if request.form[item] == "":
                 return render_template('register.html', error_of_register="Все поля должны быть заполнены!")
+
+        res = check_login(request.form["login"])
+        if res != "OK":
+            return render_template('register.html', error_of_register=res)
+        res = check_phone_number(request.form["phone"])
+        if not res:
+            return render_template('register.html', error_of_register="Неверный формат телефона")
+        res = check_password(request.form["password"])
+        if res != "OK":
+            return render_template('register.html', error_of_register=res)
         if db_register(request.form) == 'UniqueViolation':
             return render_template("register.html", error_of_register="Пользователь с такими данными уже существует")
         return render_template("login.html")
@@ -132,7 +140,13 @@ def register():
 def order():
     if request.method == "POST":
         db_move_bag_to_order(session["id"])
+        return render_template('order_list.html')
     return render_template('order.html')
+
+@app.route('/order_list')
+@login_required
+def order_list():
+    return render_template('order_list.html')
 
 
 if __name__ == "__main__":
