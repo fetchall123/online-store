@@ -139,7 +139,7 @@ def register():
 @login_required
 def order():
     if request.method == "POST":
-        db_move_bag_to_order(session["id"])
+        db_move_bag_to_order(session["id"], request.form)
         return render_template('order_list.html')
     return render_template('order.html')
 

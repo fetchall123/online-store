@@ -1,12 +1,13 @@
 import psycopg2
+import datetime
 from psycopg2.errors import UniqueViolation
 
 
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
-                                database='test',
-                                user='postgres',
-                                password='An230909*#')
+                            database='test',
+                            user='postgres',
+                            password='An230909*#')
     return conn
 
 
@@ -21,13 +22,16 @@ def db_conn(input_func):
         conn.close()
         # print("*****************")  # после вывода оригинальной функции выводим всякие звездочки
         return res
+
     return output_func  # возвращаем новую функцию
+
 
 @db_conn
 def get_products(cur, conn):
     cur.execute('select * from goods')
     goods = cur.fetchall()
     return goods
+
 
 @db_conn
 def get_products_by_id(cursor, conn, ids):
@@ -36,10 +40,9 @@ def get_products_by_id(cursor, conn, ids):
         cursor.execute('SELECT name, price, image_path, good_id from goods where good_id = (%s);', (id,))
         good = cursor.fetchall()[0]
         good_dict = {'name': good[0], "price": good[1], 'image_path': good[2],
-                     'amount': amount, 'total': amount*good[1], 'good_id': good[3]}
+                     'amount': amount, 'total': amount * good[1], 'good_id': good[3]}
         goods.append(good_dict)
     return goods
-
 
 
 @db_conn
@@ -49,6 +52,7 @@ def get_login(cursor, conn, login):
                    , (login,))
     buyers = cursor.fetchall()
     return buyers
+
 
 @db_conn
 def db_register(cur, conn, request_form):
@@ -66,7 +70,7 @@ def db_register(cur, conn, request_form):
 def get_goods_in_bag(cursor, conn, buyer_id):
     cursor.execute('select good_id, amount from bags \
                                                     where buyer_id = (%s);'
-                                , (buyer_id,))
+                   , (buyer_id,))
     db_bag = cursor.fetchall()
     return db_bag
 
@@ -79,7 +83,7 @@ def db_add_good(cursor, conn, good_id, buyer_id):
     bag = cursor.fetchall()
     if bag:
         cursor.execute('UPDATE bags set amount = (%s) where bag_id = (%s);'
-                       , ( bag[0][1] + 1, bag[0][0]))
+                       , (bag[0][1] + 1, bag[0][0]))
     else:
         cursor.execute('INSERT INTO bags(good_id, buyer_id, amount) \
                                     VALUES(%s,%s,%s);'
@@ -96,12 +100,22 @@ def db_del_good(cursor, conn, good_id, buyer_id):
 
 
 @db_conn
-def db_move_bag_to_order(cursor, conn, buyer_id):
+def db_move_bag_to_order(cursor, conn, buyer_id, request_form):
+    cursor.execute("INSERT INTO order_info(name, surname, adress, phone, date_of_order, date, delivery_type) \
+                            VALUES (%s, %s, %s, %s, %s, %s, %s) returning order_info_id", (request_form["name"],
+                                                                                           request_form["surname"],
+                                                                                           request_form["adress"],
+                                                                                           request_form["phone"],
+                                                                                           datetime.datetime.now(),
+                                                                                           request_form["date"],
+                                                                                           request_form[
+                                                                                            "delivery_type"]))
+    order_info_id = cursor.fetchall()[0][0]
     cursor.execute('delete from bags \
                                         where buyer_id  = (%s) returning buyer_id, good_id, amount;'
                   , (buyer_id,))
     bag = cursor.fetchall()
-    print(bag)
-    cursor.execute("INSERT INTO orders(buyer_id, good_id, amount) \
-                          VALUES(%s, %s, %s);"), (bag[0][0], bag[0][1], bag[0][2])
+    for good in bag:
+        cursor.execute("INSERT INTO orders(buyer_id, good_id, amount, order_info_id) \
+                          VALUES(%s, %s, %s, %s);", (good[0], good[1], good[2], order_info_id))
     conn.commit()
