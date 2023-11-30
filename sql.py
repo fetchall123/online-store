@@ -2,9 +2,9 @@ import psycopg2
 
 def get_db_connection():
     conn = psycopg2.connect(host='localhost',
-                                database='test',
+                                database='postgres',
                                 user='postgres',
-                                password='An230909*#')
+                                password='')
     return conn
 data = [{'name': 'Супер крутой товар', 'description': 'Это супер крутой товар, скорее покупай', "price": 50, 'image_path': "куб.jpeg"},
         {'name': 'Супер крутой товар2', 'description': 'Это супер крутой товар, скорее покупай2', "price": 500, 'image_path': "top_good.jpg"},

@@ -4,10 +4,10 @@ from psycopg2.errors import UniqueViolation
 
 
 def get_db_connection():
-    conn = psycopg2.connect(host='localhost',
-                            database='test',
+    conn = psycopg2.connect(host='172.18.0.1',
+                            database='postgres',
                             user='postgres',
-                            password='An230909*#')
+                            password='', port=5433)
     return conn
 
 
@@ -109,11 +109,11 @@ def db_move_bag_to_order(cursor, conn, buyer_id, request_form):
                                                                                            datetime.datetime.now(),
                                                                                            request_form["date"],
                                                                                            request_form[
-                                                                                            "delivery_type"]))
+                                                                                                                  "delivery_type"]))
     order_info_id = cursor.fetchall()[0][0]
     cursor.execute('delete from bags \
                                         where buyer_id  = (%s) returning buyer_id, good_id, amount;'
-                  , (buyer_id,))
+                   , (buyer_id,))
     bag = cursor.fetchall()
     for good in bag:
         cursor.execute("INSERT INTO orders(buyer_id, good_id, amount, order_info_id) \
