@@ -4,10 +4,11 @@ from psycopg2.errors import UniqueViolation
 
 
 def get_db_connection():
-    conn = psycopg2.connect(host='localhost',
-                            database='test',
+    conn = psycopg2.connect(host='db',
+                            database='postgres',
                             user='postgres',
-                            password='An230909*#')
+                            password='',
+                            port=5432)
     return conn
 
 
